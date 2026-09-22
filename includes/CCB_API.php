@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
-class CCB_API{
-    
+namespace CartComback\includes;
+
+if (!defined('ABSPATH')) {
+    exit();
 }
+
+
+class CCB_API {}
