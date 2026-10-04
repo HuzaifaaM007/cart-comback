@@ -1,0 +1,162 @@
+.ccb-topbar {
+    background: #fff;
+    display: flex;
+    gap: 30px;
+    padding: 0 25px;
+    border-bottom: 1px solid #e5e5e5;
+    margin-left: -20px
+}
+
+.ccb-topbar a {
+    padding: 18px 0;
+    text-decoration: none;
+    color: #333;
+    border-bottom: 3px solid transparent;
+    box-shadow: none
+}
+
+.ccb-topbar a.active {
+    color: #1fb8e2;
+    border-color: #e2571f
+}
+
+.ccb-body {
+    display: flex;
+    margin-left: -20px;
+    min-height: 70vh;
+    background: #f4f5f7
+}
+
+.ccb-side {
+    width: 220px;
+    background: #fff;
+    padding: 20px
+}
+
+.ccb-side a {
+    display: block;
+    padding: 10px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #333;
+    box-shadow: none
+}
+
+.ccb-side a.active {
+    background: #fdf1ec;
+    color: #e2571f
+}
+
+.ccb-main {
+    flex: 1;
+    padding: 30px 50px
+}
+
+.ccb-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 25px;
+    max-width: 800px
+}
+
+.ccb-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid #eee
+}
+
+.ccb-row-wide {
+    flex-direction: column;
+    align-items: stretch
+}
+
+.ccb-row-wide select {
+    width: 100%;
+    max-width: none
+}
+
+.ccb-desc {
+    margin: 4px 0 0;
+    color: #666;
+    font-size: 13px
+}
+
+.ccb-msg {
+    margin-left: 12px;
+    color: #1a7f37
+}
+
+/* multi-select chips */
+.ccb-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px
+}
+
+.ccb-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0f0f1;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 13px
+}
+
+.ccb-chip button {
+    border: 0;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    color: #666
+}
+
+/* toggle switch */
+.ccb-switch {
+    position: relative;
+    width: 46px;
+    height: 26px;
+    display: inline-block
+}
+
+.ccb-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute
+}
+
+.ccb-switch span {
+    position: absolute;
+    inset: 0;
+    background: #ccc;
+    border-radius: 26px;
+    cursor: pointer;
+    transition: .2s
+}
+
+.ccb-switch span:before {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: .2s
+}
+
+.ccb-switch input:checked+span {
+    background: #e2571f
+}
+
+.ccb-switch input:checked+span:before {
+    transform: translateX(20px)
+}

@@ -1,1 +1,6 @@
 /vendor/
+/node_modules/
+.nvmrc
+/build/
+pnpm-lock.yaml
+pnpm-workspace.yaml

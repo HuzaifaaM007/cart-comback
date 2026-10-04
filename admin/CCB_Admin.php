@@ -14,6 +14,115 @@ class CCB_Admin
 {
 
 
+    private const OPTION = 'ccb_settings_options';
+
+
+    public function ccb_schema(): array
+    {
+        return [
+            'general' => [
+                'label' => 'General',
+                'fields' => [
+                    'enable_tracker' => [
+                        'type'    =>  'toggle',
+                        'label'   =>  'Enable Tracking',
+                        'desc'    =>  'Cart will be considered abandoned if order is not completed in cut-off time.',
+                        'default' =>  1,
+                    ],
+                    'cut_off' => [
+                        'type'    =>  'number',
+                        'label'   =>  'Cart Abandoned Cut-Off Time',
+                        'desc'    =>  'Consider Cart abandoned after this many minutes of item being added to cart and order not placed.',
+                        'suffix'  =>  'minutes',
+                        'min'     =>  1,
+                        'default' =>  20,
+                    ],
+                    'disable_tracking_for' => [
+                        'type'         =>  'multiselect',
+                        'label'        =>  'Disable Tracking For',
+                        'desc'         =>  'Selected user roles are ignored by the abandonment process when logged in.',
+                        'placeholder'  =>  'Select user roles',
+                        'options'      =>  $this->ccb_get_user_roles(),
+                        'default'      =>  [],
+                    ],
+                    'exclude_email_for' => [
+                        'type'        =>  'multiselect',
+                        'label'       =>  'Exclude Email Sending For',
+                        'desc'        =>  'Future recovery emails are not sent for selected order statuses; the cart is marked as recovered.',
+                        'paceholder'  =>  'Select Order Statuses',
+                        'options'     =>  $this->ccb_get_order_statuses(),
+                        'default'     =>  ['wc-processing', 'wc-cmpleted'],
+                    ],
+                    'send_recovery_email' => [
+                        'type'    => 'toggle',
+                        'label'   => 'Recovery Email',
+                        'desc'    => 'Send recovery emails for abandoned carts.',
+                        'default' => 1,
+                    ],
+                ]
+            ]
+        ];
+    }
+
+    private function ccb_get_user_roles(): array
+    {
+        return wp_roles()->get_names();
+    }
+
+    private function ccb_get_order_statuses(): array
+    {
+        return function_exists('wc_get_order_statuses') ? wc_get_order_statuses() : [];
+    }
+
+    private function ccb_sanitize_field(array $f, $v)
+    {
+        switch ($f['type']) {
+            case 'toggle':
+                return $v ? 1 : 0;
+            case 'number':
+                return max((int) ($f['min'] ?? 0), absint($v));
+            case 'email':
+                return sanitize_email((string) $v);
+            case 'textarea':
+                return sanitize_textarea_field((string) $v);
+            case 'select':
+                return (is_string($v) && isset($f['options'][$v])) ? $v : $f['default'];
+            case 'multiselect':
+                $allowed = array_map('strval', array_keys($f['options']));
+                $vals    = is_array($v) ? array_filter($v, 'is_scalar') : [];
+                $vals    = array_map(fn($x) => sanitize_text_field((string) $x), $vals);
+                return array_values(array_intersect($vals, $allowed));
+            default:
+                return sanitize_text_field((string) $v);
+        }
+    }
+
+
+    private function ccb_all_fields(): array
+    {
+        $out = [];
+        foreach ($this->ccb_schema() as $section) {
+            foreach ($section['fields'] as $key => $f) {
+                $out[$key] = $f;
+            }
+        }
+
+        return $out;
+    }
+
+    public function ccb_get_settings(): array
+    {
+
+        $saved = get_option(self::OPTION);
+        $saved = is_array($saved) ? $saved : [];
+        $out   = [];
+        foreach ($this->ccb_all_fields() as $key => $field) {
+            $out[$key] = $saved[$key] ?? $field['default'];
+        }
+        return $out;
+    }
+
+
     /**
      * action: admin_menu
      */
@@ -26,16 +135,49 @@ class CCB_Admin
             'manage_options',
             'cart-comback',
             [$this, 'ccb_admin_page_render'],
-            'dashicons',
+            'dashicons-chart-area',
             70
         );
     }
 
-    public function ccb_admin_page_render()
-    {
+    // public function ccb_register_settings()
+    // {
+    //     register_setting('ccb_settings', 'ccb_settings_options', [$this, 'ccb_sanitize_options']);
 
-?>
-        <h1>Cart comback</h1>
-<?php
+    //     add_settings_section('ccb_general_settings', 'General', null, 'cart-comback');
+
+    //     add_settings_field('ccb_general_enable_tracker', 'Enable Tracking', [$this, 'ccb_general_tracker_render'], 'cart_comback', 'ccb_general_settings',);
+    //     add_settings_field('ccb_general_cut_off', 'Cut-Off Time', [$this, 'ccb_cut_off_render'], 'cart_comback', 'ccb_general_settings',);
+    //     add_settings_field('ccb_general_disable_tracking_for', 'Disable Tracking For', [$this, 'ccb_general__disble_tracker_for_render'], 'cart_comback', 'ccb_general_settings',);
+    //     add_settings_field('ccb_general_exclude_email', 'Exclude Email for', [$this, 'ccb_general_exclude_email_for'], 'cart_comback', 'ccb_general_settings',);
+    //     add_settings_field('ccb_general_send_recovery_email', 'Recovery Email', [$this, 'ccb_general_recovery_email'], 'cart_comback', 'ccb_general_settings',);
+    // }
+
+
+
+
+    public function ccb_admin_page_render(): void
+    {
+        if (!file_exists(CCB_PATH . 'build/index.asset.php')) {
+            echo '<div class="wrap"><div class="notice notice-error"><p>Build files missing. Run <code>npm install &amp;&amp; npm run build</code>.</p></div></div>';
+            return;
+        }
+        echo '<div class="wrap" style="margin:0"><div id="ccb-root"></div></div>';
+    }
+
+    public function ccb_save_settings(\WP_REST_Request $req): array
+    {
+        $data  = $req->get_json_params();
+        $saved = get_option(self::OPTION, []);
+        $saved = is_array($saved) ? $saved : [];
+
+        foreach ($this->ccb_all_fields() as $key => $field) {
+            if (is_array($data) && array_key_exists($key, $data)) {
+                $saved[$key] = $this->ccb_sanitize_field($field, $data[$key]);
+            }
+        }
+
+        update_option(self::OPTION, $saved);
+        return $this->ccb_get_settings();
     }
 }

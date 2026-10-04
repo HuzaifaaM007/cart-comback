@@ -27,7 +27,19 @@ if (file_exists(CCB_PATH . 'vendor/autoload.php')) {
 }
 
 use CartComback\includes\CCB_Bootstrap;
+use CartComback\includes\CCB_Database;
+use CartComback\includes\CCB_Cron;
 
+register_activation_hook(__FILE__, 'ccb_plugin_activator');
+
+function ccb_plugin_activator(): void
+{
+    $ccb_database = new CCB_Database();
+    $ccb_database->ccb_create_abandoned_cart_table();
+
+    $ccb_cron = new CCB_Cron();
+    $ccb_cron->ccb_schedule_cron_on_activation();
+}
 // 2. Fixed action link settings
 function ccb_add_action_links(array $links): array
 {
@@ -92,6 +104,5 @@ function ccb_run_plugin(): void
         $ccb_bootstrap = new CCB_Bootstrap();
         $ccb_bootstrap->run();
     }
-
 }
 add_action('plugins_loaded', 'ccb_run_plugin');
