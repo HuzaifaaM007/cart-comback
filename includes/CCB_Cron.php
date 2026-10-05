@@ -38,6 +38,7 @@ class CCB_Cron
     public function ccb_add_cron_schedule(array $schedules): array
     {
         $schedules['every_five_minutes'] = ['interval' => 300, 'display' => 'Every 5 Minutes'];
+        error_log('cron job scheduled');
         return $schedules;
     }
 
@@ -58,6 +59,7 @@ class CCB_Cron
 
             $this->ccb_database->ccb_update_abandoned_cart_table_to_change_status($row, 'abandoned');
 
+            error_log('ccb_cart_abandoned added on line 61 cron class');
             // Trigger your recovery email here
             do_action('ccb_cart_abandoned', $row);
         }
