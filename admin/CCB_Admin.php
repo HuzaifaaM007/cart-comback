@@ -60,6 +60,62 @@ class CCB_Admin
                         'default' => 1,
                     ],
                 ]
+            ],
+            'gmail_smtp' => [
+                'label' => 'Gmail SMTP Settings',
+                'fields' => [
+                    'enable_smtp' => [
+                        'type'    => 'toggle',
+                        'label'   => 'Enable Gmail SMTP',
+                        'desc'    => 'Route all outbound emails through Gmail SMTP.',
+                        'default' => 1,
+                    ],
+                    'smtp_host' => [
+                        'type'        => 'text',
+                        'label'       => 'SMTP Host',
+                        'desc'        => 'The hostname for the Gmail SMTP server.',
+                        'placeholder' => 'smtp.gmail.com',
+                        'default'     => 'smtp.gmail.com',
+                    ],
+                    'smtp_port' => [
+                        'type'    => 'number',
+                        'label'   => 'SMTP Port',
+                        'desc'    => 'Use 587 for TLS or 465 for SSL encryption.',
+                        'min'     => 1,
+                        'default' => 587,
+                    ],
+                    'encryption' => [
+                        'type'    => 'select',
+                        'label'   => 'Encryption Type',
+                        'desc'    => 'Select security encryption protocol.',
+                        'options' => [
+                            'tls' => 'TLS',
+                            'ssl' => 'SSL',
+                        ],
+                        'default' => 'tls',
+                    ],
+                    'from_email' => [
+                        'type'        => 'email',
+                        'label'       => 'From Email Address',
+                        'desc'        => 'Your Gmail or Google Workspace email address.',
+                        'placeholder' => 'youremail@gmail.com',
+                        'default'     => '',
+                    ],
+                    'from_name' => [
+                        'type'        => 'text',
+                        'label'       => 'From Name',
+                        'desc'        => 'The name displayed in recipient inboxes.',
+                        'placeholder' => 'Your Store Name',
+                        'default'     => '',
+                    ],
+                    'app_password' => [
+                        'type'        => 'password',
+                        'label'       => 'Google App Password',
+                        'desc'        => 'Use a 16-character 2-Step Verification App Password generated from your Google Account settings.',
+                        'placeholder' => '•••• •••• •••• ••••',
+                        'default'     => '',
+                    ],
+                ]
             ]
         ];
     }
@@ -85,6 +141,8 @@ class CCB_Admin
                 return sanitize_email((string) $v);
             case 'textarea':
                 return sanitize_textarea_field((string) $v);
+            case 'password':
+                return str_replace(' ', '', sanitize_text_field((string) $v)); 
             case 'select':
                 return (is_string($v) && isset($f['options'][$v])) ? $v : $f['default'];
             case 'multiselect':
