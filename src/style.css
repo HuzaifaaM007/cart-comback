@@ -160,3 +160,18 @@
 .ccb-switch input:checked+span:before {
     transform: translateX(20px)
 }
+
+.ccb-password-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.ccb-password-toggle {
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer
+}

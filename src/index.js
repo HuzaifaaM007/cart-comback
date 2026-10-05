@@ -47,6 +47,7 @@ function MultiSelect({ field, value, onChange }) {
 
 function Field({ field, value, onChange }) {
     let input;
+    const [show, setShow] = useState(false);
 
     switch (field.type) {
         case 'toggle':
@@ -92,6 +93,23 @@ function Field({ field, value, onChange }) {
             input = (
                 <textarea rows="4" className="large-text" value={value}
                     onChange={(e) => onChange(e.target.value)} />
+            );
+            break;
+        case 'password':
+            input = (
+                <div className="ccb-password-wrap">
+                    <input
+                        type={show ? 'text' : 'password'}
+                        className="regular-text"
+                        placeholder={field.placeholder}
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                        autoComplete="new-password"
+                    />
+                    <button type="button" className="ccb-password-toggle" onClick={() => setShow(!show)}>
+                        {show ? 'Hide' : 'Show'}
+                    </button>
+                </div>
             );
             break;
         default: // text, email
