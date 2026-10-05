@@ -34,11 +34,17 @@ register_activation_hook(__FILE__, 'ccb_plugin_activator');
 
 function ccb_plugin_activator(): void
 {
+    if (get_option('ccb_activated')) {
+        return;
+    }
+
     $ccb_database = new CCB_Database();
     $ccb_database->ccb_create_abandoned_cart_table();
 
     $ccb_cron = new CCB_Cron();
     $ccb_cron->ccb_schedule_cron_on_activation();
+
+    update_option('ccb_activated', true);
 }
 // 2. Fixed action link settings
 function ccb_add_action_links(array $links): array
