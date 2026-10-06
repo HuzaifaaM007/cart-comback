@@ -49,9 +49,9 @@ class CCB_Admin
                         'type'        =>  'multiselect',
                         'label'       =>  'Exclude Email Sending For',
                         'desc'        =>  'Future recovery emails are not sent for selected order statuses; the cart is marked as recovered.',
-                        'paceholder'  =>  'Select Order Statuses',
+                        'placeholder'  =>  'Select Order Statuses',
                         'options'     =>  $this->ccb_get_order_statuses(),
-                        'default'     =>  ['wc-processing', 'wc-cmpleted'],
+                        'default'     =>  ['wc-processing', 'wc-completed'],
                     ],
                     'send_recovery_email' => [
                         'type'    => 'toggle',
@@ -68,7 +68,7 @@ class CCB_Admin
                         'type'    => 'toggle',
                         'label'   => 'Enable Gmail SMTP',
                         'desc'    => 'Route all outbound emails through Gmail SMTP.',
-                        'default' => 1,
+                        'default' => 0,
                     ],
                     'smtp_host' => [
                         'type'        => 'text',
@@ -142,7 +142,7 @@ class CCB_Admin
             case 'textarea':
                 return sanitize_textarea_field((string) $v);
             case 'password':
-                return str_replace(' ', '', sanitize_text_field((string) $v)); 
+                return str_replace(' ', '', sanitize_text_field((string) $v));
             case 'select':
                 return (is_string($v) && isset($f['options'][$v])) ? $v : $f['default'];
             case 'multiselect':
@@ -180,6 +180,14 @@ class CCB_Admin
         return $out;
     }
 
+    public function ccb_is_smtp_ready(): bool
+    {
+        $s = $this->ccb_get_settings();
+
+        return !empty($s['enable_smtp'])
+            && is_email($s['from_email'])
+            && !empty($s['app_password']);
+    }
 
     /**
      * action: admin_menu
