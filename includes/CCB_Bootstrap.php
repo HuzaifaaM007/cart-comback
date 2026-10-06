@@ -25,7 +25,7 @@ class CCB_Bootstrap
     {
         $this->load_dependencies();
         $this->define_wp_hooks();
-        error_log('define admin hooks 1');
+        // error_log('define admin hooks 1');
         $this->define_admin_hooks();
     }
 
@@ -62,10 +62,10 @@ class CCB_Bootstrap
         $this->ccb_loader->add_action('woocommerce_check_cart_items',                $ccb_core,               'ccb_snapshot_cart');
         $this->ccb_loader->add_action('woocommerce_thankyou',                        $ccb_core,           'ccb_mark_cart_ordered');
         $this->ccb_loader->add_action('woocommerce_order_status_changed',            $ccb_core,           'ccb_mark_cart_ordered');
-
+        $this->ccb_loader->add_action('woocommerce_checkout_update_order_review',    $ccb_core,      'ccb_capture_checkout_email');
         $ccb_cron   =  new CCB_Cron();
-        $this->ccb_loader->add_filter('cron_schedules',                              $ccb_cron,           'ccb_add_cron_schedule');
-        $this->ccb_loader->add_filter('ccb_check_abandoned_carts',                   $ccb_cron,         'ccb_run_abandoned_check');
+        // $this->ccb_loader->add_filter('cron_schedules',                              $ccb_cron,           'ccb_add_cron_schedule');
+        $this->ccb_loader->add_action('ccb_check_abandoned_carts',                   $ccb_cron,         'ccb_run_abandoned_check');
 
         $ccb_email = new CCB_Email();
         $this->ccb_loader->add_action('phpmailer_init',                              $ccb_email,             'ccb_configure_smtp');
