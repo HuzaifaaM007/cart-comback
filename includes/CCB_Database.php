@@ -101,11 +101,9 @@ class CCB_Database
             $cutoff_time
         ));
 
-        if ($rows) {
-            return $rows;
-        }
 
-        return false;
+
+        return $rows ?? [];
     }
 
     public function ccb_update_abandoned_cart_table_to_change_status(object $row, string $status): bool
@@ -114,7 +112,7 @@ class CCB_Database
         $table = $wpdb->prefix . 'ccb_abandoned_carts';
 
         $result = false;
-        $wpdb->update(
+        $result = $wpdb->update(
             $table,
             ['status' => $status, 'updated_at' => current_time('mysql')],
             ['id' => $row->id]
