@@ -34,6 +34,10 @@ register_activation_hook(__FILE__, 'ccb_plugin_activator');
 
 function ccb_plugin_activator(): void
 {
+
+    $ccb_cron = new CCB_Cron();
+    $ccb_cron->ccb_schedule_cron_on_activation();
+
     if (get_option('ccb_activated')) {
         return;
     }
@@ -41,11 +45,26 @@ function ccb_plugin_activator(): void
     $ccb_database = new CCB_Database();
     $ccb_database->ccb_create_abandoned_cart_table();
 
-    $ccb_cron = new CCB_Cron();
-    $ccb_cron->ccb_schedule_cron_on_activation();
+
 
     update_option('ccb_activated', true);
 }
+
+add_filter('cron_schedules', function (array $schedules): array {
+    $schedules['every_five_minutes'] = ['interval' => 300, 'display' => 'Every 5 Minutes'];
+    return $schedules;
+});
+
+add_action('init', function () {
+    if (!wp_next_scheduled('ccb_check_abandoned_carts')) {
+        wp_schedule_event(time(), 'every_five_minutes', 'ccb_check_abandoned_carts');
+    }
+});
+
+register_deactivation_hook(__FILE__, function () {
+    wp_clear_scheduled_hook('ccb_check_abandoned_carts');
+});
+
 // 2. Fixed action link settings
 function ccb_add_action_links(array $links): array
 {
@@ -94,7 +113,7 @@ function ccb_show_admin_notice_and_deactivate(callable $notice_callback, bool $a
 
 function ccb_run_plugin(): void
 {
-    error_log('ccb_run_plugin 1');
+    // error_log('ccb_run_plugin 1');
 
 
     if (!ccb_is_wc_activated()) {
@@ -103,12 +122,24 @@ function ccb_run_plugin(): void
         return;
     }
 
-    error_log('ccb_run_plugin 2');
+    // error_log('ccb_run_plugin 2');
 
     if (class_exists(CCB_Bootstrap::class)) {
-        error_log('bootstrap class exists');
+        // error_log('bootstrap class exists');
         $ccb_bootstrap = new CCB_Bootstrap();
         $ccb_bootstrap->run();
     }
 }
 add_action('plugins_loaded', 'ccb_run_plugin');
+
+add_action('init', function () {
+    if (isset($_GET['ccb_test_cron'])) {
+        do_action('ccb_check_abandoned_carts');
+        wp_die('Cron job ran manually — check debug.log');
+    }
+});
+
+
+add_action('wp_mail_failed', function ($wp_error) {
+    error_log('ccb: wp_mail failed — ' . $wp_error->get_error_message());
+});
