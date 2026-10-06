@@ -26,7 +26,10 @@ class CCB_Cron
      */
     public function ccb_schedule_cron_on_activation(): void
     {
-        if (!wp_next_scheduled('ccb_check_abadoned_carts')) {
+        error_log('ccb_check_abandoned_carts 1');
+
+        if (!wp_next_scheduled('ccb_check_abandoned_carts')) {
+            error_log('ccb_check_abandoned_carts 2');
             wp_schedule_event(time(), 'every_five_minutes', 'ccb_check_abandoned_carts');
         }
     }
@@ -35,22 +38,30 @@ class CCB_Cron
     /**
      * filter: cron_schedules
      */
-    public function ccb_add_cron_schedule(array $schedules): array
-    {
-        $schedules['every_five_minutes'] = ['interval' => 300, 'display' => 'Every 5 Minutes'];
-        error_log('cron job scheduled');
-        return $schedules;
-    }
+    // public function ccb_add_cron_schedule(array $schedules): array
+    // {
+    //     $schedules['every_five_minutes'] = ['interval' => 300, 'display' => 'Every 5 Minutes'];
+    //     error_log('cron job scheduled');
+    //     return $schedules;
+    // }
 
+    /**
+     * 
+     */
     public function ccb_run_abandoned_check(): void
     {
 
         $settings = (new \CartComback\admin\CCB_Admin)->ccb_get_settings();
-        $cutoff_minutes = $settings['cut_off'] ?? 30;
+        $cutoff_minutes = $settings['cut_off'] ?? 2;
+
 
         $cutoff_time = date('Y-m-d H:i:s', strtotime("-{$cutoff_minutes} minutes"));
 
+        error_log('cutoff_minutes: ' . $cutoff_minutes . ' time: ' . $cutoff_time);
+
         $rows = $this->ccb_database->ccb_fetch_abandoned_carts('active', $cutoff_time);
+
+        error_log("rows" . print_r($rows,true));
 
         foreach ($rows as $row) {
             if ($row->user_id && $this->ccb_user_role_excluded($row->user_id, $settings)) {
