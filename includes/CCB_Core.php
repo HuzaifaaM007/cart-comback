@@ -34,7 +34,7 @@ class CCB_Core
         }
 
 
-        $session_key =  WC()->session->generate_customer_id();
+        $session_key =  WC()->session->get_customer_id();
         $user_id     =  get_current_user_id();
         $email       =  '';
 
@@ -78,5 +78,16 @@ class CCB_Core
         }
     }
 
+    public function ccb_capture_checkout_email(string $posted_data): void
+    {
+        parse_str($posted_data, $data);
+        $email = sanitize_email($data['billing_email'] ?? '');
 
+        if (!is_email($email) || WC()->customer === null) {
+            return;
+        }
+
+        WC()->customer->set_billing_email($email);
+        $this->ccb_snapshot_cart();
+    }
 }
