@@ -22,38 +22,37 @@ class CCB_Email
     /**
      * action: phpmailer_init
      */
-    public function ccb_configure_smtp(object $phpmailer)
+    public function ccb_configure_smtp($phpmailer)
     {
+        error_log('ccb_configure_smtp CALLED');
+
+        if (!$this->ccb_admin->ccb_is_smtp_ready()) {
+            return;
+        }
+
+        error_log('ccb enable_smtp value: ' . var_export($settings['enable_smtp'] ?? 'NOT SET', true)); // TEMP
 
         $settings = $this->ccb_admin->ccb_get_settings();
-        $smtp_enabled = $settings['enable_smtp'] ? $settings['enable_smtp'] : 0;
-
-        if ($smtp_enabled !== '1') {
-            error_log('smtp not enabled ');
-            return;
-        }
-
-        $host       =  $settings['smtp_host']       ??  'smtp.gmail.com';
-        $port       =  (int) $settings['smtp_port'] ??  587;
-        $username   =  $settings['from_name']       ??  get_bloginfo('name');
-        $password   =  $settings['app_password']    ??  '';
-        $from       =  $settings['from_email']      ??  get_option('admin_email');
-        $from_name  =  $settings['from_name']       ??  get_bloginfo('name');
-        $encryption =  $settings['encryption']      ??  'tls';
-
-        if (empty($username) || empty($password)) {
-            return;
-        }
 
         $phpmailer->isSMTP();
-        $phpmailer->Host       = $host;
+        $phpmailer->Host       = $settings['smtp_host'];
+        $phpmailer->Port       = (int) $settings['smtp_port'];
         $phpmailer->SMTPAuth   = true;
-        $phpmailer->Port       = $port;
-        $phpmailer->Username   = $username;
-        $phpmailer->Password   = $password;
-        $phpmailer->SMTPSecure = $encryption; // 'tls' or 'ssl'
-        $phpmailer->From       = $from;
-        $phpmailer->FromName   = $from_name;
+        $phpmailer->SMTPSecure = $settings['encryption'];
+        $phpmailer->Username   = $settings['from_email'];
+        $phpmailer->Password   = $settings['app_password'];
+        $phpmailer->setFrom(
+            $settings['from_email'],
+            !empty($settings['from_name']) ? $settings['from_name'] : get_bloginfo('name')
+        );
+
+        error_log('ccb: From set to ' . $phpmailer->From); // TEMP
+
+        // TEMPORARY — remove once working
+        $phpmailer->SMTPDebug   = 2;
+        $phpmailer->Debugoutput = function ($str) {
+            error_log('ccb SMTP debug: ' . trim($str));
+        };
     }
 
 
@@ -64,6 +63,7 @@ class CCB_Email
      */
     public function ccb_send_cart_recovery_email(object|array $cart_row)
     {
+
         $settings = $this->ccb_admin->ccb_get_settings();
 
         if (empty($settings['send_recovery_email'])) {
@@ -115,24 +115,73 @@ class CCB_Email
             return false;
         }
 
-        $site_name = get_bloginfo('name');
+        // $site_name = get_bloginfo('name');
 
-        // Gmail SMTP enabled: phpmailer_init() already sets From/FromName/auth,
-        // so we only need Reply-To here. Otherwise fall back to the Email section's
-        // sender_name/reply_to and wp_mail's default From address.
-        $smtp_enabled = !empty($settings['enable_smtp']);
+        // // Gmail SMTP enabled: phpmailer_init() already sets From/FromName/auth,
+        // // so we only need Reply-To here. Otherwise fall back to the Email section's
+        // // sender_name/reply_to and wp_mail's default From address.
+        // $smtp_enabled = $this->ccb_admin->ccb_is_smtp_ready();
+        // $reply_to = '';
+        // if ($smtp_enabled) {
+        //     $sender_name = !empty($settings['from_name']) ? $settings['from_name'] : $site_name;
+        //     $reply_to    = !empty($settings['from_email']) ? $settings['from_email'] : get_option('admin_email');
+        // }
+        // // else {
+        // //     $sender_name = !empty($settings['sender_name']) ? $settings['sender_name'] : $site_name;
+        // //     $reply_to    = !empty($settings['reply_to']) ? $settings['reply_to'] : get_option('admin_email');
+        // // }
+
+        // if (!$smtp_enabled) {
+        //     $from_email = is_email(get_option('admin_email')) ? get_option('admin_email') : 'noreply@example.com';
+        //     $headers[]  = 'From: ' . $sender_name . ' <' . $from_email . '>';
+        // }
+
+        // $recovery_url = add_query_arg('ccb_restore', $cart_row->session_key, wc_get_cart_url());
+
+        // $subject = sprintf(__('You left something behind at %s', 'cart-comback'), $site_name);
+
+        // $body = $this->ccb_get_cart_recovery_email_template([
+        //     'site_name'    => $site_name,
+        //     'products'     => $products,
+        //     'cart_total'   => wc_price($cart_row->cart_total),
+        //     'recovery_url' => $recovery_url,
+        // ]);
+
+        // $headers = [
+        //     'Content-Type: text/html; charset=UTF-8',
+        //     'Reply-To: ' . $reply_to,
+        // ];
+
+        // // Only set From manually when SMTP is off — phpmailer_init() sets it when SMTP is on,
+        // // and Gmail rejects a From that doesn't match the authenticated account.
+        // if (!$smtp_enabled) {
+        //     $headers[] = 'From: ' . $sender_name . ' <' . get_option('admin_email') . '>';
+        // }
+
+        // error_log('line 156  ' . $cart_row->email . ' ' . $subject . ' ' . $body . ' ' . print_r($headers, true));
+        // $email_sent = wp_mail($cart_row->email, $subject, $body, $headers);
+
+        // error_log('ccb: recovery email sent: ' . $email_sent);
+
+        // error_log('email sent : ' . $email_sent);
+        // return $email_sent;
+
+        $site_name    = get_bloginfo('name');
+        $smtp_enabled = $this->ccb_admin->ccb_is_smtp_ready();
 
         if ($smtp_enabled) {
             $sender_name = !empty($settings['from_name']) ? $settings['from_name'] : $site_name;
-            $reply_to    = !empty($settings['from_email']) ? $settings['from_email'] : get_option('admin_email');
+            $from_email  = $settings['from_email'];
+            $reply_to    = $settings['from_email'];
         } else {
             $sender_name = !empty($settings['sender_name']) ? $settings['sender_name'] : $site_name;
-            $reply_to    = !empty($settings['reply_to']) ? $settings['reply_to'] : get_option('admin_email');
+            $admin_email = get_option('admin_email');
+            $from_email  = is_email($admin_email) ? $admin_email : 'noreply@example.com';
+            $reply_to    = !empty($settings['reply_to']) ? $settings['reply_to'] : $from_email;
         }
 
         $recovery_url = add_query_arg('ccb_restore', $cart_row->session_key, wc_get_cart_url());
-
-        $subject = sprintf(__('You left something behind at %s', 'cart-comback'), $site_name);
+        $subject      = sprintf(__('You left something behind at %s', 'cart-comeback'), $site_name);
 
         $body = $this->ccb_get_cart_recovery_email_template([
             'site_name'    => $site_name,
@@ -143,20 +192,13 @@ class CCB_Email
 
         $headers = [
             'Content-Type: text/html; charset=UTF-8',
+            'From: ' . $sender_name . ' <' . $from_email . '>',
             'Reply-To: ' . $reply_to,
         ];
 
-        // Only set From manually when SMTP is off — phpmailer_init() sets it when SMTP is on,
-        // and Gmail rejects a From that doesn't match the authenticated account.
-        if (!$smtp_enabled) {
-            $headers[] = 'From: ' . $sender_name . ' <' . get_option('admin_email') . '>';
-        }
-
         $email_sent = wp_mail($cart_row->email, $subject, $body, $headers);
+        error_log('ccb: recovery email sent: ' . var_export($email_sent, true));
 
-        error_log('ccb: recovery email sent: ' . $email_sent);
-
-        error_log('email sent : ' . $email_sent);
         return $email_sent;
     }
 
