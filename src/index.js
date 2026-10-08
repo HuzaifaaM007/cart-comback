@@ -191,8 +191,8 @@ function Layout() {
     return (
         <>
             <nav className="ccb-topbar">
-                <NavLink to="/dashboard">Dashboard</NavLink>
-                <NavLink to="/reports">Reports</NavLink>
+                {/* <NavLink to="/dashboard">Dashboard</NavLink>
+                <NavLink to="/reports">Reports</NavLink> */}
                 <NavLink to="/settings">Settings</NavLink>
             </nav>
             <div className="ccb-body"><Outlet /></div>
@@ -205,9 +205,9 @@ function App() {
         <HashRouter>
             <Routes>
                 <Route element={<Layout />}>
-                    <Route index element={<Navigate to="/dashboard" replace />} />
-                    <Route path="dashboard" element={<Page title="Dashboard" />} />
-                    <Route path="reports" element={<Page title="Reports" />} />
+                    <Route index element={<Navigate to="/settings" replace />} />
+                    {/* <Route path="dashboard" element={<Page title="Dashboard" />}  /> */}
+                    {/* <Route path="reports" element={<Page title="Reports" />} /> */}
                     <Route path="settings" element={<SettingsLayout />}>
                         <Route index element={<Navigate to={firstSection} replace />} />
                         <Route path=":section" element={<SettingsSection />} />
