@@ -59,6 +59,19 @@ class CCB_Admin
                         'desc'    => 'Send recovery emails for abandoned carts.',
                         'default' => 1,
                     ],
+                    'require_consent' => [
+                        'type'    => 'toggle',
+                        'label'   => 'Require Customer Consent',
+                        'desc'    => 'Only send recovery emails to customers who ticked the checkout checkbox. WhatsApp always requires consent.',
+                        'default' => 1,
+                    ],
+                    'consent_text' => [
+                        'type'        => 'text',
+                        'label'       => 'Checkbox Text',
+                        'desc'        => 'Shown next to the checkout checkbox. Leave empty for the default wording.',
+                        'placeholder' => 'Remind me about my cart by email or WhatsApp if I don\'t complete my order.',
+                        'default'     => '',
+                    ],
                 ]
             ],
             'gmail_smtp' => [
@@ -116,7 +129,53 @@ class CCB_Admin
                         'default'     => '',
                     ],
                 ]
-            ]
+            ],
+            'whatsapp' => [
+                'label' => 'WhatsApp Settings',
+                'fields' => [
+                    'send_recovery_whatsapp' => [
+                        'type'    => 'toggle',
+                        'label'   => 'Enable WhatsApp Recovery',
+                        'desc'    => 'Send cart recovery messages via the WhatsApp Business Cloud API. Customers must have opted in.',
+                        'default' => 0,
+                    ],
+                    'wa_phone_number_id' => [
+                        'type'        => 'text',
+                        'label'       => 'Phone Number ID',
+                        'desc'        => 'Found in Meta App Dashboard → WhatsApp → API Setup. This is the numeric ID, not the phone number itself.',
+                        'placeholder' => '123456789012345',
+                        'default'     => '',
+                    ],
+                    'wa_access_token' => [
+                        'type'        => 'password',
+                        'label'       => 'Access Token',
+                        'desc'        => 'Use a permanent System User token with whatsapp_business_messaging and whatsapp_business_management permissions.',
+                        'placeholder' => 'EAAB••••••••••••',
+                        'default'     => '',
+                    ],
+                    'wa_template_name' => [
+                        'type'        => 'text',
+                        'label'       => 'Template Name',
+                        'desc'        => 'The exact name of your approved template in WhatsApp Manager.',
+                        'placeholder' => 'cart_recovery',
+                        'default'     => 'cart_recovery',
+                    ],
+                    'wa_language' => [
+                        'type'        => 'text',
+                        'label'       => 'Template Language Code',
+                        'desc'        => 'Must match the language the template was approved in (e.g. en, en_US).',
+                        'placeholder' => 'en',
+                        'default'     => 'en',
+                    ],
+                    'wa_default_country_code' => [
+                        'type'        => 'text',
+                        'label'       => 'Default Country Code',
+                        'desc'        => 'Used to convert local numbers starting with 0 into international format. Digits only, no +.',
+                        'placeholder' => '92',
+                        'default'     => '92',
+                    ],
+                ]
+            ],
         ];
     }
 
