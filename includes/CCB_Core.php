@@ -37,12 +37,15 @@ class CCB_Core
         $session_key =  WC()->session->get_customer_id();
         $user_id     =  get_current_user_id();
         $email       =  '';
+        $phone       =  '';
 
         if ($user_id) {
             $user  =  get_userdata($user_id);
             $email =  $user->user_email;
+            $phone = get_user_meta($user_id, 'billing_phone', true);
         } elseif (WC()->customer && WC()->customer->get_billing_email()) {
             $email = WC()->customer->get_billing_email();
+            $phone = WC()->customer->get_billing_phone();
         }
 
         $cart_data = [];
@@ -55,7 +58,8 @@ class CCB_Core
 
         $now = current_time('mysql');
 
-        $result =  $this->ccb_database->ccb_insert_into_abandoned_cart_table($session_key, $user_id, $email, $cart_data, $now);
+        $result =  $this->ccb_database->ccb_insert_into_abandoned_cart_table($session_key, $user_id, $email, $phone, $cart_data, $now);
+        $this->ccb_database->ccb_set_cart_consent($session_key, CCB_Consent::ccb_get_session_consent(), $now);
 
         error_log('inserted rows in abandoned cart table :' . $result . ' time: ' . $now);
     }
