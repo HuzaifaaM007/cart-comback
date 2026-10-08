@@ -15,6 +15,7 @@ use CartComback\includes\CCB_API;
 use CartComback\includes\CCB_Core;
 use CartComback\includes\CCB_Cron;
 use CartComback\includes\CCB_Email;
+use CartComback\includes\CCB_WhatsApp;
 
 class CCB_Bootstrap
 {
@@ -46,30 +47,44 @@ class CCB_Bootstrap
 
         // error_log('ccb_admin_hooks');
 
-        $ccb_admin = new CCB_Admin();
-        $this->ccb_loader->add_action('admin_menu',                                  $ccb_admin,        'ccb_register_admin_page');
+        $ccb_admin    = new CCB_Admin();
+        $this->ccb_loader->add_action('admin_menu',                                  $ccb_admin,            'ccb_register_admin_page');
 
-        $ccb_assets =  new CCB_Assets();
-        $this->ccb_loader->add_action('admin_enqueue_scripts',                       $ccb_assets,      'ccb_enqueue_admin_assets');
+        $ccb_assets   =  new CCB_Assets();
+        $this->ccb_loader->add_action('admin_enqueue_scripts',                       $ccb_assets,          'ccb_enqueue_admin_assets');
 
-        $ccb_api    =  new CCB_API();
-        $this->ccb_loader->add_action('rest_api_init',                               $ccb_api,        'ccb_register_admin_routes');
+        $ccb_api      =  new CCB_API();
+        $this->ccb_loader->add_action('rest_api_init',                               $ccb_api,            'ccb_register_admin_routes');
 
-        $ccb_core   =  new CCB_Core();
-        $this->ccb_loader->add_action('woocommerce_add_to_cart',                     $ccb_core,               'ccb_snapshot_cart');
-        $this->ccb_loader->add_action('woocommerce_cart_item_removed',               $ccb_core,               'ccb_snapshot_cart');
-        $this->ccb_loader->add_action('woocommerce_after_cart_item_quantity_update', $ccb_core,               'ccb_snapshot_cart');
-        $this->ccb_loader->add_action('woocommerce_check_cart_items',                $ccb_core,               'ccb_snapshot_cart');
-        $this->ccb_loader->add_action('woocommerce_thankyou',                        $ccb_core,           'ccb_mark_cart_ordered');
-        $this->ccb_loader->add_action('woocommerce_order_status_changed',            $ccb_core,           'ccb_mark_cart_ordered');
-        $this->ccb_loader->add_action('woocommerce_checkout_update_order_review',    $ccb_core,      'ccb_capture_checkout_email');
-        $ccb_cron   =  new CCB_Cron();
+        $ccb_core     =  new CCB_Core();
+        $this->ccb_loader->add_action('woocommerce_add_to_cart',                     $ccb_core,                   'ccb_snapshot_cart');
+        $this->ccb_loader->add_action('woocommerce_cart_item_removed',               $ccb_core,                   'ccb_snapshot_cart');
+        $this->ccb_loader->add_action('woocommerce_after_cart_item_quantity_update', $ccb_core,                   'ccb_snapshot_cart');
+        $this->ccb_loader->add_action('woocommerce_check_cart_items',                $ccb_core,                   'ccb_snapshot_cart');
+        $this->ccb_loader->add_action('woocommerce_thankyou',                        $ccb_core,               'ccb_mark_cart_ordered');
+        $this->ccb_loader->add_action('woocommerce_order_status_changed',            $ccb_core,               'ccb_mark_cart_ordered');
+        $this->ccb_loader->add_action('woocommerce_checkout_update_order_review',    $ccb_core,          'ccb_capture_checkout_email');
+        
+        $ccb_cron     =  new CCB_Cron();
         // $this->ccb_loader->add_filter('cron_schedules',                              $ccb_cron,           'ccb_add_cron_schedule');
-        $this->ccb_loader->add_action('ccb_check_abandoned_carts',                   $ccb_cron,         'ccb_run_abandoned_check');
+        $this->ccb_loader->add_action('ccb_check_abandoned_carts',                   $ccb_cron,             'ccb_run_abandoned_check');
 
-        $ccb_email = new CCB_Email();
-        $this->ccb_loader->add_action('phpmailer_init',                              $ccb_email,             'ccb_configure_smtp');
-        $this->ccb_loader->add_action('ccb_cart_abandoned',                          $ccb_email,   'ccb_send_cart_recovery_email');
+        $ccb_email    = new CCB_Email();
+        $this->ccb_loader->add_action('phpmailer_init',                              $ccb_email,                 'ccb_configure_smtp');
+        $this->ccb_loader->add_action('ccb_cart_abandoned',                          $ccb_email,       'ccb_send_cart_recovery_email');
+
+        $ccb_whatsapp = new CCB_WhatsApp();
+        $this->ccb_loader->add_action('ccb_cart_abandoned',                          $ccb_whatsapp,  'ccb_send_cart_recovery_whatsapp');
+
+        $ccb_restore  = new CCB_Restore();
+        $this->ccb_loader->add_action('template_redirect',                           $ccb_restore,            'ccb_maybe_restore_cart');
+
+        $ccb_consent  = new CCB_Consent();
+        $this->ccb_loader->add_action('woocommerce_after_checkout_billing_form',     $ccb_consent,               'ccb_render_checkbox');
+        $this->ccb_loader->add_action('woocommerce_checkout_update_order_review',    $ccb_consent,              'ccb_store_consent', 5);
+
+        $ccb_database = new CCB_Database();
+        $this->ccb_loader->add_action('init',                                        $ccb_database,                'ccb_maybe_upgrade');
     }
 
     function define_wp_hooks() {}
