@@ -29,7 +29,7 @@ class CCB_Cron
         error_log('ccb_check_abandoned_carts 1');
 
         if (!wp_next_scheduled('ccb_check_abandoned_carts')) {
-            error_log('ccb_check_abandoned_carts 2');
+            // error_log('ccb_check_abandoned_carts 2');
             wp_schedule_event(time(), 'every_five_minutes', 'ccb_check_abandoned_carts');
         }
     }
@@ -52,7 +52,7 @@ class CCB_Cron
     {
 
         $settings = (new \CartComback\admin\CCB_Admin)->ccb_get_settings();
-        $cutoff_minutes = $settings['cut_off'] ?? 2;
+        $cutoff_minutes = $settings['cut_off'] ?? 20;
 
 
         $cutoff_time = date('Y-m-d H:i:s', strtotime("-{$cutoff_minutes} minutes"));
