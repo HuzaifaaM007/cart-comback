@@ -132,14 +132,27 @@ function ccb_run_plugin(): void
 }
 add_action('plugins_loaded', 'ccb_run_plugin');
 
-add_action('init', function () {
-    if (isset($_GET['ccb_test_cron'])) {
-        do_action('ccb_check_abandoned_carts');
-        wp_die('Cron job ran manually — check debug.log');
-    }
-});
+// add_action('init', function () {
+//     if (isset($_GET['ccb_test_cron'])) {
+//         do_action('ccb_check_abandoned_carts');
+//         wp_die('Cron job ran manually — check debug.log');
+//     }
+// });
 
 
-add_action('wp_mail_failed', function ($wp_error) {
-    error_log('ccb: wp_mail failed — ' . $wp_error->get_error_message());
-});
+// add_action('wp_mail_failed', function ($wp_error) {
+//     error_log('ccb: wp_mail failed — ' . $wp_error->get_error_message());
+// });
+
+// // TEMPORARY test trigger. Remove after testing.
+// add_action('admin_init', function () {
+//     if (!isset($_GET['ccb_wa_test']) || !current_user_can('manage_options')) {
+//         return;
+//     }
+
+//     $phone = sanitize_text_field(wp_unslash($_GET['ccb_wa_test']));
+//     $wa    = new \CartComback\includes\CCB_WhatsApp();
+//     $ok    = $wa->ccb_send_test_whatsapp($phone);
+
+//     wp_die($ok ? 'WhatsApp test sent. Check your phone.' : 'WhatsApp test FAILED. Check debug.log.');
+// });
